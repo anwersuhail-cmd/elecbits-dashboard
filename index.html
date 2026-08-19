@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Elecbits — Discovery Pipeline Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f6f8fa;color:#1f2328;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#ffffff,#eef2f7);border-bottom:2px solid #2563eb;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;flex-wrap:wrap;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.logo{font-size:17px;font-weight:800;color:#0969da}.logo span{color:#1f2328}
+.hsub{font-size:10px;color:#57606a;margin-top:1px}
+.hright{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.dtag{font-size:10px;background:#eaeef2;padding:3px 9px;border-radius:20px;color:#57606a;border:1px solid #d0d7de}
+.sstatus{font-size:10px;padding:3px 9px;border-radius:20px;background:#dafbe1;color:#1a7f37;border:1px solid #4ac26b;min-width:90px;text-align:center}
+.btn{
+    padding:7px 14px;
+    border-radius:7px;
+    border:none;
+    cursor:pointer;
+    font-size:12px;
+    font-weight:600;
+    transition:all .15s;
+    white-space:nowrap;
+}
+.bb{background:#2563eb;color:#fff}.bb:hover{background:#1d4ed8}
+.bs{background:#eaeef2;color:#24292f;border:1px solid #d0d7de}.bs:hover{background:#d0d7de}
+.bg{background:#dafbe1;color:#1a7f37;border:1px solid #4ac26b}.bg:hover{background:#aceebb}
+.br{background:#ffebe9;color:#cf222e;border:1px solid #ff8182}.br:hover{background:#ffcecb}
+.bc{background:#ddf4ff;color:#0969da;border:1px solid #80ccff}.bc:hover{background:#b6e3ff;color:#0550ae}
+.by{background:#fff8c5;color:#9a6700;border:1px solid #d4a72c}.by:hover{background:#fae17d;color:#7d4e00}
+/* SYNC BANNER */
+.sbanner{background:#fff8c5;border-bottom:1px solid #d4a72c;padding:7px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sbanner.hide{display:none}
+.sbanner-txt{font-size:11px;color:#9a6700}
+/* METRICS */
+.mbar{padding:20px 22px;display:grid;grid-template-columns:repeat(7,1fr);gap:16px;border-bottom:1px solid #d0d7de}
+.mc{
+    background:#ffffff;
+    border:1px solid #d8dee4;
+    border-radius:16px;
+    padding:22px 16px;
+    min-height:105px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    transition:.2s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+.mc:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 22px rgba(0,0,0,.10);
+}
+tbody tr:nth-child(even){
+    background:#fbfcfd;
+}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:6px}
+.c1::before{background:#0969da}.c2::before{background:#8250df}.c3::before{background:#a475f9}
+.c4::before{background:#1a7f37}.c5::before{background:#9a6700}.c6::before{background:#bc4c00}
+.c7::before{background:#cf222e}.c8::before{background:#1a7f37}
+.mv{font-size:36px;font-weight:900;line-height:1;}
+.ml{
+    font-size:12px;
+    color:#5b6675;
+    font-weight:600;
+    margin-top:8px;
+    text-transform:uppercase;
+    letter-spacing:.8px;
+}
+.c1 .mv{color:#0969da}.c2 .mv{color:#8250df}.c3 .mv{color:#a475f9}
+.c4 .mv{color:#1a7f37}.c5 .mv{color:#9a6700}.c6 .mv{color:#bc4c00}
+.c7 .mv{color:#cf222e}.c8 .mv{color:#1a7f37}
+/* TABS */
+.tabs{padding:7px 18px 0;display:flex;gap:4px;border-bottom:1px solid #d0d7de}
+.tab{padding:6px 13px;border-radius:6px 6px 0 0;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;border-bottom:none;color:#57606a}
+.tab.active{background:#ffffff;color:#1f2328;border-color:#d0d7de}
+/* TOOLBAR */
+.tbar{padding:7px 18px;background:#ffffff;border-bottom:1px solid #d0d7de;display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.sf{padding:3px 7px;border-radius:9px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #d0d7de;background:#eaeef2;color:#57606a;transition:all .15s;white-space:nowrap}
+.sf.active,.sf:hover{border-color:#2563eb;color:#0969da;background:#ddf4ff}
+.si{padding:4px 9px;border-radius:5px;border:1px solid #d0d7de;background:#ffffff;color:#1f2328;font-size:11px;outline:none;width:220px}
+.si:focus{border-color:#2563eb}
+/* TABLE */
+.tcon{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead{background:#f8fafc;position:sticky;top:0;z-index:10}
+th{padding:7px 8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#4b5563;border-bottom:1px solid #d0d7de;white-space:nowrap;text-align:left;position:relative}
+th:hover .dc{display:inline-block}
+.dc{display:none;background:#ffebe9;border:none;color:#cf222e;border-radius:3px;padding:1px 3px;font-size:9px;cursor:pointer;margin-left:3px;vertical-align:middle}
+td{padding:8px 10px;border-bottom:1px solid #eaeef2;vertical-align:middle}
+tr.rh:hover td{background:#edf4ff}
+tr.ph td:first-child{border-left:2px solid rgba(207,34,46,.6)}
+tr.pm td:first-child{border-left:2px solid rgba(154,103,0,.6)}
+.ei{background:transparent;border:1px solid transparent;border-radius:7px;padding:3px 5px;color:#1f2328;font-size:11px;width:100%;min-width:75px;font-family:inherit}
+.ei:hover{border-color:#d0d7de;background:#eaeef2}
+.ei:focus{border-color:#2563eb;background:#ddf4ff;outline:none}
+.eco{font-weight:700;font-size:12px;min-width:110px}
+.ena{min-width:130px}.eno{min-width:130px}
+.es{background:#ffffff;border:1px solid #d0d7de;border-radius:7px;padding:3px 4px;color:#1f2328;font-size:10px;cursor:pointer;font-family:inherit;max-width:125px}
+.es:focus{border-color:#2563eb;outline:none}
+.ed{background:#ffffff;border:1px solid #d0d7de;border-radius:7px;padding:3px 4px;color:#1f2328;font-size:10px}
+.ed:focus{border-color:#2563eb;outline:none}
+/* RESPONSE COLOR CODING — positive / negative / neutral select values */
+.es.pos{background:#dafbe1;border-color:#4ac26b;color:#1a7f37;font-weight:700}
+.es.neg{background:#ffebe9;border-color:#ff8182;color:#cf222e;font-weight:700}
+.es.neu{background:#fff8c5;border-color:#d4a72c;color:#9a6700;font-weight:700}
+.rn{color:#57606a;font-size:10px;font-weight:700;text-align:center;width:24px}
+.dr{background:none;border:none;color:#8c959f;cursor:pointer;font-size:12px;padding:1px 3px;border-radius:3px}
+.dr:hover{color:#cf222e;background:#ffebe9}
+.arb{padding:9px 18px;border-top:1px solid #eaeef2}
+.ar{background:#ffffff;border:1px dashed #d0d7de;color:#57606a;border-radius:6px;padding:6px;cursor:pointer;font-size:11px;font-weight:600;width:100%;text-align:center}
+.ar:hover{border-color:#2563eb;color:#0969da;background:#ddf4ff}
+/* MODALS */
+.ov{display:none;position:fixed;inset:0;background:#00000066;z-index:400}
+.ov.open{display:block}
+.pan{position:fixed;right:0;top:0;bottom:0;width:320px;background:#ffffff;border-left:1px solid #d0d7de;z-index:401;overflow-y:auto;padding:16px}
+/* SYNC MODAL (centered) */
+.smod{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:460px;background:#ffffff;border:1px solid #d0d7de;border-radius:12px;z-index:402;padding:22px;max-height:90vh;overflow-y:auto}
+.ptitle{font-size:14px;font-weight:700}.psub{font-size:10px;color:#57606a;margin:2px 0 13px}
+.psec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#57606a;margin:11px 0 6px}
+.crow{background:#f6f8fa;border:1px solid #eaeef2;border-radius:6px;padding:8px 10px;margin-bottom:5px}
+.ctop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.clbl{font-size:11px;font-weight:600}.clbl.cu{color:#8250df}
+.tgl{width:34px;height:17px;background:#d0d7de;border-radius:9px;cursor:pointer;position:relative;border:none;flex-shrink:0;transition:background .15s}
+.tgl.on{background:#2563eb}
+.tgl::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:left .15s}
+.tgl.on::after{left:19px}
+.cdel{background:#ffebe9;border:none;color:#cf222e;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;font-weight:600;flex-shrink:0}
+.cdel:hover{background:#ffcecb}
+.oeditor{margin-top:7px;padding-top:7px;border-top:1px solid #eaeef2}
+.otags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.otag{background:#eaeef2;border:1px solid #d0d7de;border-radius:4px;padding:2px 5px;font-size:10px;display:flex;align-items:center;gap:3px}
+.oxbtn{background:none;border:none;color:#cf222e;cursor:pointer;font-size:10px;padding:0;line-height:1}
+.oadd{display:flex;gap:5px}
+.oai{flex:1;padding:3px 6px;border-radius:4px;border:1px solid #d0d7de;background:#ffffff;color:#1f2328;font-size:10px;outline:none;font-family:inherit}
+.oai:focus{border-color:#2563eb}
+.oabt{padding:3px 8px;border-radius:4px;border:none;background:#2563eb;color:#fff;font-size:10px;cursor:pointer;font-weight:700}
+.acf{margin-top:13px;background:#f6f8fa;border:1px solid #d0d7de;border-radius:7px;padding:11px}
+.acft{font-size:11px;font-weight:700;margin-bottom:7px;color:#24292f}
+.aci{width:100%;padding:5px 8px;border-radius:4px;border:1px solid #d0d7de;background:#ffffff;color:#1f2328;font-size:11px;outline:none;margin-bottom:6px;font-family:inherit}
+.aci:focus{border-color:#2563eb}
+.acbt{width:100%;padding:6px;border-radius:4px;border:none;background:#2563eb;color:#fff;font-size:11px;font-weight:700;cursor:pointer}
+.acbt:hover{background:#1d4ed8}
+/* SYNC SETUP MODAL FIELDS */
+.sfield{margin-bottom:10px}
+.slbl{font-size:10px;color:#57606a;font-weight:700;margin-bottom:4px;display:block}
+.sinp{width:100%;padding:7px 10px;border-radius:5px;border:1px solid #d0d7de;background:#ffffff;color:#1f2328;font-size:12px;outline:none;font-family:monospace}
+.sinp:focus{border-color:#2563eb}
+.sinfo{background:#dafbe1;border:1px solid #4ac26b;border-radius:6px;padding:10px;margin:12px 0;font-size:11px;color:#1a7f37;line-height:1.7}
+.sinfo b{color:#116329}
+/* BOARD */
+.bvw{padding:14px 18px;display:none}
+.bcols{display:flex;gap:11px;overflow-x:auto;padding-bottom:11px}
+.bcol{min-width:180px;background:#ffffff;border:1px solid #d0d7de;border-radius:7px;padding:9px}
+.bch{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:0 0 6px;border-bottom:1px solid #eaeef2;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.bcc{background:#f6f8fa;border:1px solid #d0d7de;border-radius:5px;padding:7px;margin-bottom:5px}
+.bcn{font-weight:700;font-size:12px;margin-bottom:2px}
+.bco{font-size:10px;color:#57606a}
+.bca{font-size:10px;color:#9a6700;margin-top:4px;padding-top:4px;border-top:1px solid #eaeef2}
+.cct{background:#d0d7de;color:#57606a;padding:1px 5px;border-radius:8px;font-size:9px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#f6f8fa}
+::-webkit-scrollbar-thumb{background:#d0d7de;border-radius:3px}
+/* ANALYTICS */
+.avw{padding:16px 20px;display:none}
+.agrid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:14px}
+@media (max-width:820px){.agrid{grid-template-columns:1fr}}
+.acard{background:#ffffff;border:1px solid #d0d7de;border-radius:10px;padding:14px 16px;box-shadow:0 1px 2px rgba(31,35,40,.06)}
+.acard h3{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#57606a;margin-bottom:10px;font-weight:700}
+.astats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.astat{background:#ffffff;border:1px solid #d0d7de;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 2px rgba(31,35,40,.06)}
+.astat .av{font-size:22px;font-weight:800}
+.astat .al{font-size:9px;color:#57606a;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.aleg{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:#57606a}
+.aleg span{display:inline-flex;align-items:center;gap:4px}
+.adot{width:8px;height:8px;border-radius:50%;display:inline-block}
+@media print{
+  body{background:#fff;color:#000}
+  .hdr{background:#f6f8fa;border-bottom:2px solid #2563eb;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .logo{color:#2563eb}
+  .tabs,.tbar,.arb,.dr,.dc,.ov,.sbanner,.bb,.bs,.bg,.br,.bc,.by,.sstatus,.avw{display:none!important}
+  .mbar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mc{background:#f6f8fa;border-color:#d0d7de}
+  th{background:#f6f8fa;color:#57606a}td{border-color:#d0d7de}
+  .ei,.es,.ed{border:none;background:transparent;color:#000;padding:0}
+}
+/* AUTH SCREEN */
+#authScreen{position:fixed;inset:0;background:linear-gradient(135deg,#eef2f7,#f6f8fa);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.acard-auth{background:#fff;border:1px solid #d0d7de;border-radius:14px;padding:30px 28px;width:100%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.10)}
+.alogo{font-size:20px;font-weight:800;color:#0969da;margin-bottom:2px}.alogo span{color:#1f2328}
+.asub{font-size:11px;color:#57606a;margin-bottom:20px}
+.atabs{display:flex;gap:0;margin-bottom:18px;border:1px solid #d0d7de;border-radius:8px;overflow:hidden}
+.atab{flex:1;text-align:center;padding:8px 0;font-size:12px;font-weight:700;cursor:pointer;background:#f6f8fa;color:#57606a}
+.atab.active{background:#2563eb;color:#fff}
+.afield{margin-bottom:12px}
+.alabel{font-size:10px;font-weight:700;color:#57606a;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.4px}
+.ainput{width:100%;padding:9px 11px;border-radius:7px;border:1px solid #d0d7de;font-size:13px;outline:none;font-family:inherit}
+.ainput:focus{border-color:#2563eb}
+.asubmit{width:100%;padding:10px;border-radius:7px;border:none;background:#2563eb;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px}
+.asubmit:hover{background:#1d4ed8}
+.asubmit:disabled{opacity:.6;cursor:not-allowed}
+.aerr{font-size:11px;color:#cf222e;background:#ffebe9;border:1px solid #ff8182;border-radius:6px;padding:7px 9px;margin-bottom:12px;display:none}
+.amsg{font-size:11px;color:#1a7f37;background:#dafbe1;border:1px solid #4ac26b;border-radius:6px;padding:7px 9px;margin-bottom:12px;display:none}
+.awho{font-size:11px;color:#57606a;background:#eaeef2;border:1px solid #d0d7de;padding:3px 9px;border-radius:20px;display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="acard-auth">
+    <div class="alogo">Elec<span>bits</span></div>
+    <div class="asub">Sales &amp; BD · Discovery Pipeline · Your private dashboard</div>
+    <div class="aerr" id="authErr"></div>
+    <div class="amsg" id="authMsg"></div>
+    <div class="afield"><label class="alabel">Email</label><input type="email" class="ainput" id="authEmail" placeholder="you@company.com"></div>
+    <div class="afield"><label class="alabel">Password</label><input type="password" class="ainput" id="authPass" placeholder="••••••••"></div>
+    <button class="asubmit" id="authBtn" onclick="submitAuth()">Log In</button>
+    <div style="font-size:10px;color:#8c959f;text-align:center;margin-top:14px">No account? Ask your admin to add you in Supabase.</div>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="logo">Elec<span>bits</span></div>
+    <div class="hsub">Sales & BD · Discovery Pipeline · Team Dashboard</div>
+  </div>
+  <div class="hright">
+    <div class="dtag" id="dtag"></div>
+    <div class="awho" id="whoBox">👤 <span id="whoEmail"></span></div>
+    <div class="sstatus" id="syncStatus">⟳ Supabase</div>
+    <button class="btn by" onclick="fetchCloud()" title="Get latest updates from Supabase">Refresh</button>
+    <button class="btn bc" onclick="pushCloud()" title="Save your changes to Supabase">Save Changes</button>
+    <button class="btn bb" onclick="openPanel()">⚙ Columns</button>
+    <button class="btn bg" onclick="window.print()">⬇ PDF</button>
+    <button class="btn br" onclick="doLogout()" title="Log out">⏻ Log Out</button>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="mbar">
+  <div class="mc c1"><div class="mv" id="m0">0</div><div class="ml">Total</div></div>
+  <div class="mc c2"><div class="mv" id="m1">0</div><div class="ml">MoM Sent</div></div>
+  <div class="mc c3"><div class="mv" id="m2">0</div><div class="ml">NDA Shared</div></div>
+  <div class="mc c4"><div class="mv" id="m3">0</div><div class="ml">NDA Signed</div></div>
+  <div class="mc c5"><div class="mv" id="m4">0</div><div class="ml">Req. Received</div></div>
+  <div class="mc c6"><div class="mv" id="m5">0</div><div class="ml">Quotations</div></div>
+  <div class="mc c8"><div class="mv" id="m6">0</div><div class="ml">Deal Confirmed</div></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="swTab('t',this)">📋 Detailed Table</div>
+  <div class="tab" onclick="swTab('b',this)">📊 Board View</div>
+  <div class="tab" onclick="swTab('a',this)">📈 Analytics</div>
+  <div class="tab" id="adminTabBtn" style="display:none" onclick="swTab('admin',this)">🛡 Admin — All Users</div>
+</div>
+
+<div class="tbar">
+  <div class="sf active" onclick="doFilter('All',this)">All</div>
+  <div class="sf" onclick="doFilter('Discovery Done',this)">Discovery Done</div>
+  <div class="sf" onclick="doFilter('MoM Sent',this)">MoM Sent</div>
+  <div class="sf" onclick="doFilter('NDA Shared',this)">NDA Shared</div>
+  <div class="sf" onclick="doFilter('NDA Signed',this)">NDA Signed</div>
+  <div class="sf" onclick="doFilter('Requirements Received',this)">Req. Received</div>
+  <div class="sf" onclick="doFilter('Quotation Shared',this)">Quotation</div>
+  <div class="sf" onclick="doFilter('Deal Confirmed',this)">Deal Confirmed</div>
+  <div class="sf" onclick="doFilter('On Hold',this)">On Hold</div>
+  <input class="si" placeholder="🔍 Search..." oninput="doSearch(this.value)" id="srch" style="margin-left:auto">
+</div>
+
+<!-- TABLE -->
+<div id="tvw">
+  <div class="tcon"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+  <div class="arb"><div class="ar" onclick="addRow()">＋ Add New Company</div></div>
+</div>
+
+<!-- BOARD -->
+<div class="bvw" id="bvw"><div class="bcols" id="bcols"></div></div>
+
+<!-- ANALYTICS -->
+<div class="avw" id="avw">
+  <div class="astats" id="astats"></div>
+  <div class="agrid">
+    <div class="acard">
+      <h3>Pipeline Stage Breakdown</h3>
+      <div id="stageChart"></div>
+    </div>
+    <div class="acard">
+      <h3>Response Outcome</h3>
+      <div id="respChart"></div>
+      <div class="aleg" id="respLeg"></div>
+    </div>
+  </div>
+  <div class="acard">
+    <h3>Growth Over Time — Leads Added vs Positive Responses (cumulative, by entry order)</h3>
+    <div id="growthChart"></div>
+  </div>
+</div>
+
+<!-- ADMIN — ALL USERS -->
+<div class="avw" id="adv">
+  <div class="tbar" style="border:1px solid #d0d7de;border-radius:8px;margin-bottom:12px">
+    <div class="sf active" id="adSubAll" onclick="swAdminSub('all')">All Data</div>
+    <div class="sf" id="adSubSum" onclick="swAdminSub('summary')">Summary</div>
+    <button class="btn by" style="margin-left:auto" onclick="loadAdminData()">Refresh</button>
+  </div>
+
+  <div id="adAllWrap">
+    <div class="astats" id="adUserStats"></div>
+    <div class="acard" style="margin-top:6px">
+      <h3>Every Company, Across Every User</h3>
+      <div class="tcon"><table><thead><tr><th class="rn">#</th><th>Owner</th><th>Company</th><th>Contact</th><th>Stage</th><th>Priority</th><th>Lead Owner</th><th>Next Action</th></tr></thead><tbody id="adTb"></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="adSumWrap" style="display:none">
+    <div class="astats" id="adStats"></div>
+    <div class="agrid">
+      <div class="acard">
+        <h3>Combined Pipeline Stage Breakdown</h3>
+        <div id="adStageChart"></div>
+      </div>
+      <div class="acard">
+        <h3>Leads Per User</h3>
+        <div id="adUserChart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLUMN MANAGER PANEL -->
+<div class="ov" id="ov" onclick="if(event.target===this)closePanel()">
+  <div class="pan">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="ptitle">⚙ Manage Columns</div>
+      <button class="btn bs" onclick="closePanel()" style="padding:2px 8px;font-size:14px">×</button>
+    </div>
+    <div class="psub">Toggle · Edit dropdown options · Add / delete columns</div>
+    <div class="psec">Default Columns</div>
+    <div id="pdefs"></div>
+    <div class="psec">Custom Columns</div>
+    <div id="pcusts"></div>
+    <div class="acf">
+      <div class="acft">＋ Add New Column</div>
+      <input class="aci" id="nname" placeholder="Column name e.g. Budget, Region...">
+      <select class="aci" id="ntype" style="cursor:pointer" onchange="toggleOptsInput()">
+        <option value="text">Text — free type</option>
+        <option value="date">Date — date picker</option>
+        <option value="select">Dropdown — choose options</option>
+      </select>
+      <div id="noptswrap" style="display:none">
+        <input class="aci" id="nopts" placeholder="Options comma-separated e.g. Yes,No,Pending">
+      </div>
+      <button class="acbt" onclick="addCol()">Add Column →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC SETUP MODAL -->
+<div class="ov" id="sov" onclick="if(event.target===this)closeSync()">
+  <div class="smod">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="ptitle">☁ Supabase Cloud Sync</div>
+      <button class="btn bs" onclick="closeSync()" style="padding:2px 8px;font-size:14px">×</button>
+    </div>
+    <div class="psub">Cloud sync is already configured in this dashboard.</div>
+
+    <div class="sinfo">
+      <b>One-time setup (free, 2 minutes):</b><br>
+      1. Go to <b>jsonbin.io</b> → Sign up free<br>
+      2. Click <b>New Bin</b> → paste <code>{}</code> → Save → copy the <b>Bin ID</b><br>
+      3. Go to <b>API Keys</b> tab → copy your <b>Master Key</b><br>
+      4. Paste both below → Save Config<br>
+      5. Click <b>↑ Save to Cloud</b> to push data<br>
+      6. Share this HTML file with your team — they use the same Bin ID + Key
+    </div>
+
+    <div class="sfield">
+      <label class="slbl">Supabase Project</label>
+      <input class="sinp" id="cfgBinId" placeholder="e.g. 6501abc123def456789abcde">
+    </div>
+    <div class="sfield">
+      <label class="slbl">Supabase Publishable Key</label>
+      <input class="sinp" id="cfgApiKey" placeholder="$2a$10$...">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn bb" style="flex:1;padding:8px" onclick="saveCfgAndClose()">✓ Save Config</button>
+      <button class="btn br" style="padding:8px 14px" onclick="clearCfg()">Clear</button>
+    </div>
+    <div style="margin-top:12px;padding:9px;background:#f6f8fa;border:1px solid #eaeef2;border-radius:6px;font-size:10px;color:#57606a;line-height:1.6">
+      <b style="color:#24292f">How team sharing works:</b><br>
+      • Each person makes edits locally → clicks <b>↑ Save to Cloud</b> to push<br>
+      • Others click <b>↓ Get Updates</b> to pull the latest version<br>
+      • Supabase stores the shared dashboard data in the cloud<br>
+      • The publishable key is intended for browser-side use; database access is controlled by Supabase policies
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PIPELINE STAGES ──
+const ST=["Discovery Done","MoM Sent","NDA Shared","NDA Signed","Requirements Received","Tech Discussion","Quotation Shared","Negotiation","Won","Lost","On Hold"];
+const SCC={"Discovery Done":"#2f81f7","MoM Sent":"#a371f7","NDA Shared":"#bc8cff","NDA Signed":"#56d364","Requirements Received":"#d29922","Tech Discussion":"#f0883e","Quotation Shared":"#d2a8ff","Negotiation":"#f85149","Won":"#3fb950","Lost":"#8b949e","On Hold":"#e3b341"};
+
+// ── SUPABASE CONFIG ──
+// Publishable/anon keys are intended for browser use. Do not replace this with a service-role key.
+const SUPABASE_URL='https://okrjbhifsilfdxsujzbr.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9rcmpiaGlmc2lsZmR4c3VqemJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDQ2OTUsImV4cCI6MjEwMjcyMDY5NX0.a5QZdEkZThbZPvAyUf1jcdL0-lNeiw6eMVHO8P8Y8Vo';
+const SUPABASE_TABLE='dashboard_data'; // now one row PER USER, keyed by user_id (see setup SQL)
+const sbClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser=null; // {id,email} of the logged-in user, set by initAuth()
+let isAdmin=false;
+
+// RLS checks auth.uid(), which only resolves when the request carries the
+// LOGGED-IN USER'S session token — not the shared anon key. Every request
+// must call this to get fresh headers built from the current session.
+async function authHeaders(extra){
+  const {data}=await sbClient.auth.getSession();
+  const token=data.session?data.session.access_token:SUPABASE_KEY;
+  return Object.assign({
+    'apikey':SUPABASE_KEY,
+    'Authorization':'Bearer '+token,
+    'Content-Type':'application/json'
+  },extra||{});
+}
+
+// ── AUTH (login only — accounts are created by an admin in Supabase) ──
+function showAuthErr(msg){
+  const e=document.getElementById('authErr');e.textContent=msg;e.style.display='block';
+  document.getElementById('authMsg').style.display='none';
+}
+function showAuthMsg(msg){
+  const m=document.getElementById('authMsg');m.textContent=msg;m.style.display='block';
+  document.getElementById('authErr').style.display='none';
+}
+async function submitAuth(){
+  const email=document.getElementById('authEmail').value.trim();
+  const pass=document.getElementById('authPass').value;
+  const btn=document.getElementById('authBtn');
+  if(!email||!pass){showAuthErr('Enter both email and password.');return;}
+  btn.disabled=true;
+  try{
+    const {data,error}=await sbClient.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    await onAuthed(data.user);
+  }catch(e){
+    showAuthErr(e.message==='Invalid login credentials'?'Wrong email or password. If you don\'t have an account yet, ask your admin to add you.':(e.message||'Something went wrong.'));
+  }finally{
+    btn.disabled=false;
+  }
+}
+async function doLogout(){
+  await sbClient.auth.signOut();
+  currentUser=null;
+  document.getElementById('appRoot').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('authEmail').value='';
+  document.getElementById('authPass').value='';
+}
+async function onAuthed(user){
+  currentUser={id:user.id,email:user.email};
+  document.getElementById('whoEmail').textContent=currentUser.email;
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appRoot').style.display='block';
+  await checkAdmin();
+  await startApp();
+}
+async function checkAdmin(){
+  isAdmin=false;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/dashboard_admins?user_id=eq.'+currentUser.id+'&select=user_id',{
+      headers:await authHeaders()
+    });
+    if(r.ok){
+      const rows=await r.json();
+      isAdmin=Array.isArray(rows)&&rows.length>0;
+    }
+  }catch(e){console.warn('Admin check failed:',e);}
+  document.getElementById('adminTabBtn').style.display=isAdmin?'block':'none';
+  const badge=document.getElementById('whoBox');
+  if(isAdmin&&badge)badge.innerHTML='🛡 <span id="whoEmail">'+currentUser.email+'</span> · Admin';
+}
+async function initAuth(){
+  const {data}=await sbClient.auth.getSession();
+  if(data.session&&data.session.user){
+    await onAuthed(data.session.user);
+  }else{
+    document.getElementById('authScreen').style.display='flex';
+  }
+}
+
+const DCOLS=[{"id":"co","label":"Company","type":"text","visible":true,"core":true},{"id":"ct","label":"Contact Person","type":"text","visible":true,"core":true},{"id":"dg","label":"Designation","type":"text","visible":true,"core":true},{"id":"dd","label":"Discovery Date","type":"date","visible":true,"core":true},{"id":"mom","label":"MoM Sent","type":"select","opts":["Yes","No","Pending"],"visible":true,"core":true},{"id":"nda","label":"NDA Status","type":"select","opts":["Not Discussed","Shared by Us","Signed","They Will Share","Awaiting Response"],"visible":true,"core":true},{"id":"rr","label":"Req. Received","type":"select","opts":["No","Yes","Partial","Awaited","Not Applicable"],"visible":true,"core":true},{"id":"rt","label":"Requirement Type","type":"text","visible":true,"core":true},{"id":"qu","label":"Quotation Shared","type":"select","opts":["No","Yes","Pending"],"visible":true,"core":true},{"id":"sm","label":"2nd Meeting","type":"select","opts":["No","Yes","Scheduled","Pending","Cancelled"],"visible":true,"core":true},{"id":"sd","label":"2nd Meeting Date","type":"date","visible":true,"core":true},{"id":"na","label":"Next Action","type":"text","visible":true,"core":true},{"id":"fd","label":"Follow-Up Date","type":"date","visible":true,"core":true},{"id":"st","label":"Pipeline Stage","type":"select","opts":["Discovery Done","MoM Sent","NDA Shared","NDA Signed","Requirements Received","Tech Discussion","Quotation Shared","Negotiation","Won","Lost","On Hold"],"visible":true,"core":true},{"id":"pr","label":"Priority","type":"select","opts":["High","Medium","Low"],"visible":true,"core":true},{"id":"lo","label":"Lead Owner","type":"select","opts":["Rishabh","Sid","Simone"],"visible":true,"core":true},{"id":"no","label":"Notes","type":"text","visible":true,"core":true}];
+const DD=[{"id":1,"co":"Aeologic","ct":"Abhishek","dg":"","dd":"2026-06-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Await requirement from company","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Waiting requirement"},{"id":2,"co":"IndoAI","ct":"Tushar Kanti","dg":"","dd":"2026-06-25","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Camera (ODM)","qu":"No","sm":"No","sd":"","na":"Await camera requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Camera requirement awaited"},{"id":3,"co":"Peer Robotics","ct":"Akash","dg":"","dd":"2026-06-26","mom":"Yes","nda":"Signed","rr":"Yes","rt":"","qu":"No","sm":"No","sd":"","na":"Await requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Waiting requirement"},{"id":4,"co":"Statiq","ct":"Pranjal","dg":"","dd":"2026-06-30","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"EV Charging Electronics","qu":"No","sm":"No","sd":"","na":"Await requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":""},{"id":5,"co":"Oriana","ct":"Rushikesh","dg":"","dd":"","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Follow up — reschedule meeting","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"Meeting scheduled but did not happen"},{"id":6,"co":"Homemate","ct":"Het Bhavsar","dg":"Co-founder","dd":"2026-07-15","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Camera (ODM)","qu":"No","sm":"No","sd":"","na":"Send camera spec sheet","fd":"","st":"MoM Sent","pr":"High","lo":"Simone","no":"Send camera product spec sheet"},{"id":7,"co":"TVS Motors (Calamus)","ct":"Huzaifa Hararwala","dg":"Co-Founder & CTO","dd":"2026-07-14","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Rapid Prototyping / NPI","qu":"No","sm":"No","sd":"","na":"Await NDA from TVS Motors","fd":"","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"Calamus acquired by TVS. Interested in rapid prototyping. Google Meet + Bengaluru meet possible."},{"id":8,"co":"Sanlayan","ct":"Neelakannan","dg":"","dd":"2026-07-17","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Follow up on NDA response","fd":"","st":"NDA Shared","pr":"High","lo":"Sid","no":"NDA shared by us"},{"id":9,"co":"Volthez Tech","ct":"Prasit Kumar Dutta","dg":"CTO","dd":"2026-07-20","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Battery Materials / BMS","qu":"No","sm":"No","sd":"","na":"Create MoM + questionnaire and share","fd":"","st":"Discovery Done","pr":"Medium","lo":"Sid","no":"Meeting done. MoM + questionnaire to be created."},{"id":10,"co":"FASMHO","ct":"Aqib Mastan","dg":"Co-Founder & CTO","dd":"2026-07-21","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"BMS PCB / IoT Electronics","qu":"No","sm":"No","sd":"","na":"Follow up on requirements post NDA","fd":"","st":"NDA Shared","pr":"High","lo":"Simone","no":"MoM and NDA shared"},{"id":11,"co":"Schnell Energy","ct":"Velmurugan","dg":"CPO","dd":"2026-07-21","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Send 3 separate mails to different contacts","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"3 different mails to 3 contacts"},{"id":12,"co":"Sterling EMobility","ct":"Ramesha T.D","dg":"","dd":"2026-07-21","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Sid","no":""},{"id":13,"co":"Torus Robotics","ct":"Abbhivigyan","dg":"Founder","dd":"2026-07-21","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Robotics Electronics","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"They require PCB @4,000"},{"id":14,"co":"TranX Smart","ct":"Rhine","dg":"Founder","dd":"2026-07-22","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":""},{"id":15,"co":"Elcom International","ct":"Ravindra Patil","dg":"","dd":"2026-07-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Connectors / Power Electronics","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Rishabh","no":"Sourcing contact is interested"},{"id":16,"co":"Tonbo Imaging","ct":"Arvind Lakshmikumar","dg":"Founder & CEO","dd":"2026-07-23","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Defence Electronics / EMS","qu":"No","sm":"Scheduled","sd":"2026-08-06","na":"Find alternate contact — Arvind unreachable","fd":"","st":"MoM Sent","pr":"High","lo":"Rishabh","no":"Incoming calls closed. Try alternate contact."},{"id":17,"co":"Synedyne","ct":"Shrinidhi Torvi","dg":"","dd":"2026-07-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Confirm scheduled meeting date","fd":"","st":"MoM Sent","pr":"Medium","lo":"Sid","no":"Scheduled — date TBC"},{"id":18,"co":"Nexzu Mobility","ct":"Vivek Dawange","dg":"CTO","dd":"2026-07-24","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Get NDA signed + requirements doc","fd":"2026-07-29","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"No answer previously. Call again + mail."},{"id":19,"co":"SectorQube","ct":"Biniyas Valiyaveettil","dg":"Co-Founder & Chief Marketing Officer","dd":"2026-07-25","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Send MoM and follow up on requirements","fd":"2026-07-29","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"Discovery call done 25 Jul 2026"},{"id":20,"co":"SmartDen Automations","ct":"Shrey Sharma","dg":"Founder","dd":"2026-07-25","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"SmartDen to share the BOM, Gerber files, Pick-and-Place files, enclosure requirements","fd":"2026-07-28","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"NDA and requirements awaited"},{"id":23,"co":"Cygnus Microsystems ","ct":" R. Harikrishnan","dg":"Sr.Manager Mkt","dd":"2026-07-30","mom":"Yes","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Simone","no":""},{"id":25,"co":"Cornet India","ct":"Prashant","dg":"Product","dd":"2026-07-31","mom":"Yes","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""},{"id":26,"co":"Sychedelic","ct":"Sanskar","dg":"CPO","dd":"2026-07-31","mom":"Yes","nda":"Shared by Us","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""},{"id":27,"co":"New Company","ct":"","dg":"","dd":"","mom":"No","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""}];
+const FALLBACK_NID=28;
+
+let D=[],C=[],flt="All",qry="",nid=FALLBACK_NID;
+let cloudReady=false;
+let autoSaveTimer=null;
+let saveInFlight=false;
+let pendingSave=false;
+
+// ── LOCAL SAFETY COPY (namespaced per logged-in user so browsers shared by
+// multiple people never mix each other's cached data) ──
+function lk(k){return currentUser?('eb_'+currentUser.id+'_'+k):('eb_'+k);}
+function save(){
+  try{
+    localStorage.setItem(lk('d'),JSON.stringify(D));
+    localStorage.setItem(lk('c'),JSON.stringify(C));
+    localStorage.setItem(lk('n'),String(nid));
+    localStorage.setItem(lk('saved_at'),new Date().toISOString());
+  }catch(e){console.warn('Local backup failed:',e);}
+}
+function loadLocal(){
+  D=[];
+  C=JSON.parse(JSON.stringify(DCOLS));
+  nid=FALLBACK_NID;
+  try{
+    const sd=localStorage.getItem(lk('d'));
+    const sc=localStorage.getItem(lk('c'));
+    const sn=localStorage.getItem(lk('n'));
+    if(sd){const parsed=JSON.parse(sd);if(Array.isArray(parsed))D=parsed;}
+    if(sc){const parsed=JSON.parse(sc);if(Array.isArray(parsed)&&parsed.length>0)C=parsed;}
+    if(sn){const parsed=parseInt(sn,10);if(Number.isFinite(parsed))nid=parsed;}
+  }catch(e){console.warn('Local copy could not be loaded:',e);}
+  // Safety net: never leave the table with zero renderable columns.
+  if(!Array.isArray(C)||C.filter(c=>c.visible).length===0){
+    C=JSON.parse(JSON.stringify(DCOLS));
+  }
+}
+function clearAll(){
+  if(confirm('Reset YOUR local copy to a blank pipeline?\n\nThis does NOT touch your Supabase cloud data until you click Save Changes.')){
+    D=[];
+    C=JSON.parse(JSON.stringify(DCOLS));
+    nid=FALLBACK_NID;
+    save();
+    table();
+    if(document.getElementById('bvw').style.display!=='none')board();
+    if(document.getElementById('avw').style.display!=='none')analytics();
+    setSyncStatus('⚠ Local copy reset',null);
+  }
+}
+
+// ── CLOUD STATUS ──
+function setSyncStatus(msg,ok){
+  const el=document.getElementById('syncStatus');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.background=ok===true?'#dafbe1':ok===false?'#ffebe9':'#fff8c5';
+  el.style.color=ok===true?'#1a7f37':ok===false?'#cf222e':'#9a6700';
+  el.style.borderColor=ok===true?'#4ac26b':ok===false?'#ff8182':'#d4a72c';
+}
+function updateBanner(){}
+function openSync(){
+  alert('Cloud sync is permanently configured to Supabase in this dashboard.\n\nUse Refresh to pull the latest cloud data and Save Changes to push your current changes.');
+}
+function closeSync(){}
+function clearCfg(){}
+function saveCfgAndClose(){}
+
+function supabaseUrl(query=''){
+  return SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+query;
+}
+
+function extractCloudRecord(row){
+  if(!row)return null;
+  if(Array.isArray(row.company_records) && Array.isArray(row.column_definitions)){
+    const cols=row.column_definitions.length>0?row.column_definitions:JSON.parse(JSON.stringify(DCOLS));
+    return {
+      D:row.company_records,
+      C:cols,
+      nid:Number(row.next_id)||FALLBACK_NID,
+      updated_at:row.updated_at||null
+    };
+  }
+  return null;
+}
+
+// Fetch (or create, on first login) THIS user's private row.
+async function fetchCloud(showAlert=true){
+  if(!currentUser)return false;
+  setSyncStatus('⟳ Fetching from Supabase...',null);
+  try{
+    const r=await fetch(supabaseUrl('?user_id=eq.'+currentUser.id+'&select=*'),{
+      method:'GET',
+      headers:await authHeaders()
+    });
+    const text=await r.text();
+    if(!r.ok)throw new Error('HTTP '+r.status+' — '+text);
+    const rows=JSON.parse(text);
+
+    if(rows.length===0){
+      // First time this user has logged in — create their private row with empty pipeline.
+      D=[];C=JSON.parse(JSON.stringify(DCOLS));nid=FALLBACK_NID;
+      save();table();
+      const created=await pushCloud(true);
+      cloudReady=created;
+      setSyncStatus(created?'☁ New workspace created ✓':'✗ Could not create your workspace — check console',created);
+      return created;
+    }
+
+    const record=extractCloudRecord(rows[0]);
+    if(!record)throw new Error('Supabase returned no valid dashboard record.');
+
+    D=record.D;
+    C=record.C;
+    nid=record.nid;
+    save();
+    table();
+    if(document.getElementById('bvw').style.display!=='none')board();
+    if(document.getElementById('avw').style.display!=='none')analytics();
+
+    cloudReady=true;
+    setSyncStatus('☁ Supabase ✓ '+new Date().toLocaleTimeString(),true);
+    return true;
+  }catch(e){
+    cloudReady=false;
+    setSyncStatus('✗ Cloud unavailable — local copy',false);
+    console.error('Supabase Fetch Error:',e);
+    if(showAlert){
+      alert('Could not fetch the dashboard from Supabase.\n\n'+e.message+'\n\nYour local copy has NOT been deleted or overwritten.');
+    }
+    return false;
+  }
+}
+
+// Upsert THIS user's private row (insert on first save, update thereafter).
+async function pushCloud(isInsert=false){
+  if(!currentUser)return false;
+  if(saveInFlight){pendingSave=true;return false;}
+  saveInFlight=true;
+  pendingSave=false;
+  setSyncStatus('⟳ Saving to Supabase...',null);
+
+  try{
+    const payload={
+      user_id:currentUser.id,
+      owner_email:currentUser.email,
+      company_records:D,
+      column_definitions:C,
+      next_id:nid,
+      updated_at:new Date().toISOString()
+    };
+
+    const r=await fetch(supabaseUrl('?on_conflict=user_id'),{
+      method:'POST',
+      headers:await authHeaders({'Prefer':'resolution=merge-duplicates,return=minimal'}),
+      body:JSON.stringify(payload)
+    });
+
+    const text=await r.text();
+    if(!r.ok)throw new Error('HTTP '+r.status+' — '+text);
+
+    save();
+    cloudReady=true;
+    setSyncStatus('☁ Saved to Supabase ✓ '+new Date().toLocaleTimeString(),true);
+    return true;
+  }catch(e){
+    cloudReady=false;
+    save();
+    setSyncStatus('✗ Cloud save failed — local copy kept',false);
+    console.error('Supabase Save Error:',e);
+    if(!isInsert)alert('Could not save to Supabase.\n\n'+e.message+'\n\nYour changes are still saved locally in this browser.');
+    return false;
+  }finally{
+    saveInFlight=false;
+    if(pendingSave)queueAutoSave();
+  }
+}
+
+function queueAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(()=>{pushCloud();},900);
+}
+
+// ── UPDATE FIELD ──
+function upd(id,f,v){
+  const i=D.findIndex(x=>x.id===id);
+  if(i>-1){
+    D[i][f]=v;
+    save();
+    metrics();
+    queueAutoSave();
+  }
+  if(document.getElementById('bvw').style.display!=='none')board();
+  if(document.getElementById('avw').style.display!=='none')analytics();
+}
+
+// ── CELL RENDERERS ──
+const RESP_FIELDS=['mom','nda','rr','qu','sm'];
+const RESP_POS=['yes','signed','shared by us','they will share'];
+const RESP_NEG=['no','cancelled','not applicable'];
+function respClass(f,val){
+  if(!RESP_FIELDS.includes(f))return'';
+  const v=(val||'').toLowerCase().trim();
+  if(!v)return'';
+  if(RESP_POS.includes(v))return'pos';
+  if(RESP_NEG.includes(v))return'neg';
+  return'neu';
+}
+function mSel(opts,val,f,id){
+  return`<select class="es ${respClass(f,val)}" onchange="updSelResp(this,${id},'${f}')">${(opts||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
+}
+function updSelResp(el,id,f){
+  upd(id,f,el.value);
+  el.classList.remove('pos','neg','neu');
+  const c=respClass(f,el.value);
+  if(c)el.classList.add(c);
+}
+function mInp(val,f,id,cls=''){
+  const v=(val==null?'':String(val)).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  return`<input class="ei ${cls}" value="${v}" placeholder="—" onchange="upd(${id},'${f}',this.value)">`;
+}
+function mDt(val,f,id){return`<input type="date" class="ed" value="${val||''}" onchange="upd(${id},'${f}',this.value)">`;}
+function cell(col,row){
+  if(col.type==='date')return mDt(row[col.id],col.id,row.id);
+  if(col.type==='select')return mSel(col.opts,row[col.id],col.id,row.id);
+  const c=col.id==='co'?'eco':col.id==='na'?'ena':col.id==='no'?'eno':'';
+  return mInp(row[col.id],col.id,row.id,c);
+}
+function rCls(p){return'rh'+(p==='High'?' ph':p==='Medium'?' pm':'');}
+
+// ── RENDER TABLE ──
+function table(){
+  const vis=C.filter(c=>c.visible);
+  document.getElementById('th').innerHTML=`<tr><th class="rn">#</th>${vis.map(c=>`<th>${c.label}${!c.core?`<button class="dc" onclick="delCol('${c.id}')">✕</button>`:''}</th>`).join('')}<th></th></tr>`;
+  const rows=D.filter(r=>{
+    return (flt==='All'||r.st===flt)&&(!qry||['co','ct','rt','no'].some(f=>(r[f]||'').toLowerCase().includes(qry)));
+  });
+  document.getElementById('tb').innerHTML=rows.map((r,i)=>`
+    <tr class="${rCls(r.pr)}">
+      <td class="rn">${i+1}</td>
+      ${vis.map(c=>`<td>${cell(c,r)}</td>`).join('')}
+      <td><button class="dr" onclick="delRow(${r.id})" title="Delete">✕</button></td>
+    </tr>`).join('');
+  metrics();
+}
+
+// ── BOARD ──
+function board(){
+  document.getElementById('bcols').innerHTML=ST.map(s=>{
+    const cs=D.filter(r=>r.st===s);
+    return`<div class="bcol"><div class="bch" style="color:${SCC[s]||'#57606a'}">${s}<span class="cct">${cs.length}</span></div>${
+      cs.length?cs.map(r=>`<div class="bcc"><div class="bcn">${r.co||'—'}</div><div class="bco">${r.ct||'TBD'}</div>${r.na?`<div class="bca">→ ${r.na}</div>`:''}</div>`).join(''):
+      '<div style="color:#484f58;font-size:10px;text-align:center;padding:5px">—</div>'}</div>`;
+  }).join('');
+}
+
+// ── METRICS ──
+function metrics(){
+  document.getElementById('m0').textContent=D.length;
+  document.getElementById('m1').textContent=D.filter(r=>r.mom==='Yes').length;
+  document.getElementById('m2').textContent=D.filter(r=>r.nda==='Shared by Us'||r.nda==='They Will Share').length;
+  document.getElementById('m3').textContent=D.filter(r=>r.nda==='Signed').length;
+  document.getElementById('m4').textContent=D.filter(r=>r.rr==='Yes'||r.rr==='Partial').length;
+  document.getElementById('m5').textContent=D.filter(r=>r.qu==='Yes').length;
+  document.getElementById('m6').textContent=D.filter(r=>r.st==='Won').length;
+}
+
+// ── ADD / DELETE ROW ──
+function addRow(){
+  const r={id:nid++,co:"New Company",ct:"",dg:"",dd:"",mom:"No",nda:"Not Discussed",rr:"No",rt:"",qu:"No",sm:"No",sd:"",na:"",fd:"",st:"Discovery Done",pr:"Medium",lo:"Rishabh",no:""};
+  C.filter(c=>!c.core).forEach(c=>{r[c.id]=c.type==='select'?(c.opts&&c.opts[0])||'':'';});
+  D.push(r);save();queueAutoSave();table();
+  if(document.getElementById('bvw').style.display!=='none')board();
+}
+function delRow(id){
+  if(confirm('Remove this company?')){
+    D=D.filter(r=>r.id!==id);save();queueAutoSave();table();
+    if(document.getElementById('bvw').style.display!=='none')board();
+  }
+}
+
+// ── COLUMN MANAGER ──
+function openPanel(){renderPanel();document.getElementById('ov').classList.add('open');}
+function closePanel(){document.getElementById('ov').classList.remove('open');}
+function renderPanel(){
+  document.getElementById('pdefs').innerHTML=C.filter(c=>c.core).map(c=>`
+    <div class="crow">
+      <div class="ctop"><span class="clbl">${c.label}</span><button class="tgl${c.visible?' on':''}" onclick="togCol('${c.id}',this)"></button></div>
+      ${c.type==='select'?optEd(c):''}
+    </div>`).join('');
+  const cu=C.filter(c=>!c.core);
+  document.getElementById('pcusts').innerHTML=cu.length?cu.map(c=>`
+    <div class="crow">
+      <div class="ctop"><span class="clbl cu">${c.label}</span><div style="display:flex;gap:5px;align-items:center"><button class="tgl${c.visible?' on':''}" onclick="togCol('${c.id}',this)"></button><button class="cdel" onclick="delCol('${c.id}')">Delete</button></div></div>
+      ${c.type==='select'?optEd(c):''}
+    </div>`).join(''):'<div style="color:#484f58;font-size:10px;padding:6px 0">No custom columns yet.</div>';
+}
+function optEd(c){
+  return`<div class="oeditor"><div style="font-size:9px;color:#57606a;margin-bottom:5px;font-weight:700">OPTIONS</div>
+    <div class="otags">${(c.opts||[]).map((o,i)=>`<span class="otag">${o}<button class="oxbtn" onclick="remOpt('${c.id}',${i})">×</button></span>`).join('')}</div>
+    <div class="oadd"><input class="oai" id="oi_${c.id}" placeholder="Add option..."><button class="oabt" onclick="addOpt('${c.id}')">+</button></div></div>`;
+}
+function togCol(id,btn){
+  const i=C.findIndex(c=>c.id===id);
+  if(i>-1){C[i].visible=!C[i].visible;btn.classList.toggle('on');save();queueAutoSave();table();}
+}
+function addOpt(cid){
+  const el=document.getElementById('oi_'+cid);const v=el.value.trim();if(!v)return;
+  const i=C.findIndex(c=>c.id===cid);
+  if(i>-1){if(!C[i].opts)C[i].opts=[];C[i].opts.push(v);el.value='';save();queueAutoSave();table();renderPanel();}
+}
+function remOpt(cid,oi){
+  const i=C.findIndex(c=>c.id===cid);
+  if(i>-1){C[i].opts.splice(oi,1);save();queueAutoSave();table();renderPanel();}
+}
+function addCol(){
+  const name=document.getElementById('nname').value.trim();if(!name){alert('Enter a name.');return;}
+  const type=document.getElementById('ntype').value;
+  const raw=document.getElementById('nopts').value.trim();
+  const opts=type==='select'?(raw?raw.split(',').map(s=>s.trim()).filter(Boolean):['Option 1','Option 2']):[];
+  const id='cx_'+Date.now();
+  C.push({id,label:name,type,opts,visible:true,core:false});
+  const def=type==='select'?(opts[0]||''):'';
+  D.forEach(r=>{r[id]=def;});
+  save();queueAutoSave();table();renderPanel();
+  document.getElementById('nname').value='';document.getElementById('nopts').value='';
+}
+function delCol(id){
+  if(confirm('Delete column and all its data?')){
+    C=C.filter(c=>c.id!==id);D.forEach(r=>{delete r[id];});save();queueAutoSave();table();renderPanel();
+  }
+}
+function toggleOptsInput(){document.getElementById('noptswrap').style.display=document.getElementById('ntype').value==='select'?'block':'none';}
+
+// ── FILTER / SEARCH / TABS ──
+function doFilter(s,el){flt=s;document.querySelectorAll('.sf').forEach(e=>e.classList.remove('active'));el.classList.add('active');table();}
+function doSearch(v){qry=v.toLowerCase();table();}
+function resetFilters(){flt='All';qry='';document.querySelectorAll('.sf').forEach((e,i)=>{e.classList.remove('active');if(!i)e.classList.add('active');});document.getElementById('srch').value='';table();}
+function swTab(t,el){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');
+  document.getElementById('tvw').style.display=t==='t'?'block':'none';
+  document.getElementById('bvw').style.display=t==='b'?'block':'none';
+  document.getElementById('avw').style.display=t==='a'?'block':'none';
+  document.getElementById('adv').style.display=t==='admin'?'block':'none';
+  if(t==='b')board();
+  if(t==='a')analytics();
+  if(t==='admin')loadAdminData();
+}
+function swAdminSub(which){
+  document.getElementById('adSubAll').classList.toggle('active',which==='all');
+  document.getElementById('adSubSum').classList.toggle('active',which==='summary');
+  document.getElementById('adAllWrap').style.display=which==='all'?'block':'none';
+  document.getElementById('adSumWrap').style.display=which==='summary'?'block':'none';
+}
+
+// ── ANALYTICS ──
+function analytics(){
+  const total=D.length||1;
+  const posRR=D.filter(r=>['Yes','Partial'].includes(r.rr)).length;
+  const ndaSigned=D.filter(r=>r.nda==='Signed').length;
+  const won=D.filter(r=>r.st==='Won').length;
+  document.getElementById('astats').innerHTML=`
+    <div class="astat"><div class="av" style="color:#0969da">${D.length}</div><div class="al">Total Leads</div></div>
+    <div class="astat"><div class="av" style="color:#1a7f37">${Math.round(posRR/total*100)}%</div><div class="al">Positive Response Rate</div></div>
+    <div class="astat"><div class="av" style="color:#8250df">${Math.round(ndaSigned/total*100)}%</div><div class="al">NDA Signed Rate</div></div>
+    <div class="astat"><div class="av" style="color:#bc4c00">${Math.round(won/total*100)}%</div><div class="al">Win Rate</div></div>`;
+
+  const maxStage=Math.max(1,...ST.map(s=>D.filter(r=>r.st===s).length));
+  document.getElementById('stageChart').innerHTML=ST.map(s=>{
+    const c=D.filter(r=>r.st===s).length;
+    const pct=(c/maxStage*100).toFixed(0);
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <div style="width:130px;font-size:10px;color:#57606a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>
+      <div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${pct}%;background:${SCC[s]||'#57606a'};height:100%"></div></div>
+      <div style="width:22px;font-size:11px;font-weight:700;text-align:right">${c}</div>
+    </div>`;
+  }).join('');
+
+  let pos=0,neg=0,neu=0;
+  D.forEach(r=>RESP_FIELDS.forEach(f=>{const c=respClass(f,r[f]);if(c==='pos')pos++;else if(c==='neg')neg++;else if(c==='neu')neu++;}));
+  const respTotal=Math.max(1,pos+neg+neu);
+  document.getElementById('respChart').innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:64px;font-size:10px;color:#57606a">Positive</div><div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${(pos/respTotal*100).toFixed(0)}%;background:#1a7f37;height:100%"></div></div><div style="width:22px;font-size:11px;font-weight:700;text-align:right">${pos}</div></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:64px;font-size:10px;color:#57606a">Pending</div><div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${(neu/respTotal*100).toFixed(0)}%;background:#9a6700;height:100%"></div></div><div style="width:22px;font-size:11px;font-weight:700;text-align:right">${neu}</div></div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="width:64px;font-size:10px;color:#57606a">Negative</div><div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${(neg/respTotal*100).toFixed(0)}%;background:#cf222e;height:100%"></div></div><div style="width:22px;font-size:11px;font-weight:700;text-align:right">${neg}</div></div>`;
+  document.getElementById('respLeg').innerHTML=`<span><span class="adot" style="background:#1a7f37"></span>Positive (Yes / Signed / Shared)</span><span><span class="adot" style="background:#9a6700"></span>Pending / Awaited</span><span><span class="adot" style="background:#cf222e"></span>Negative (No / N.A.)</span>`;
+
+  const W=680,H=220,pad=30;
+  const n=D.length||1;
+  let cumLead=0,cumPos=0;
+  const leadPts=[],posPts=[];
+  D.forEach((r,i)=>{
+    cumLead++;
+    if(['Yes','Partial'].includes(r.rr)||r.nda==='Signed')cumPos++;
+    const x=pad+(i/(n-1||1))*(W-2*pad);
+    leadPts.push([x,cumLead]);posPts.push([x,cumPos]);
+  });
+  const maxY=Math.max(1,cumLead);
+  const toY=v=>H-pad-(v/maxY)*(H-2*pad);
+  const path=pts=>pts.map((p,i)=>`${i===0?'M':'L'}${p[0].toFixed(1)},${toY(p[1]).toFixed(1)}`).join(' ');
+  document.getElementById('growthChart').innerHTML=n<2?'<div style="color:#8c959f;font-size:11px;padding:20px;text-align:center">Not enough entries yet to plot growth.</div>':`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:220px"><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#d0d7de"/><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#d0d7de"/><path d="${path(leadPts)}" fill="none" stroke="#0969da" stroke-width="2.5"/><path d="${path(posPts)}" fill="none" stroke="#1a7f37" stroke-width="2.5"/><text x="${pad}" y="14" font-size="9" fill="#57606a">${maxY}</text><text x="${pad}" y="${H-pad+12}" font-size="9" fill="#57606a">1st lead</text><text x="${W-pad-40}" y="${H-pad+12}" font-size="9" fill="#57606a">latest</text></svg><div class="aleg"><span><span class="adot" style="background:#0969da"></span>Cumulative leads added (${cumLead})</span><span><span class="adot" style="background:#1a7f37"></span>Cumulative positive responses (${cumPos})</span></div>`;
+}
+
+// ── ADMIN — ALL USERS ──
+async function loadAdminData(){
+  if(!isAdmin)return;
+  document.getElementById('adTb').innerHTML='<tr><td colspan="8" style="text-align:center;color:#8c959f;padding:14px">Loading every user\'s data…</td></tr>';
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?select=user_id,owner_email,company_records,updated_at',{
+      headers:await authHeaders()
+    });
+    const text=await r.text();
+    if(!r.ok)throw new Error('HTTP '+r.status+' — '+text);
+    const rows=JSON.parse(text);
+    renderAdminAll(rows);
+    renderAdminSummary(rows);
+  }catch(e){
+    console.error('Admin fetch error:',e);
+    document.getElementById('adTb').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#cf222e;padding:14px">Could not load admin data: ${e.message}</td></tr>`;
+  }
+}
+function renderAdminAll(rows){
+  const userCount=rows.length;
+  let totalLeads=0;
+  let allCompanies=[];
+  rows.forEach(row=>{
+    const recs=Array.isArray(row.company_records)?row.company_records:[];
+    totalLeads+=recs.length;
+    recs.forEach(c=>allCompanies.push({...c,_owner:row.owner_email||row.user_id}));
+  });
+  document.getElementById('adUserStats').innerHTML=`
+    <div class="astat"><div class="av" style="color:#0969da">${userCount}</div><div class="al">Active Users</div></div>
+    <div class="astat"><div class="av" style="color:#1a7f37">${totalLeads}</div><div class="al">Total Leads (all users)</div></div>
+    <div class="astat"><div class="av" style="color:#8250df">${userCount?Math.round(totalLeads/userCount):0}</div><div class="al">Avg Leads / User</div></div>
+    <div class="astat"><div class="av" style="color:#bc4c00">${allCompanies.filter(c=>c.st==='Won').length}</div><div class="al">Total Won</div></div>`;
+  document.getElementById('adTb').innerHTML=allCompanies.length?allCompanies.map((c,i)=>`
+    <tr class="rh">
+      <td class="rn">${i+1}</td>
+      <td style="font-size:10px;color:#57606a">${c._owner}</td>
+      <td style="font-weight:700">${c.co||'—'}</td>
+      <td>${c.ct||'—'}</td>
+      <td><span style="color:${SCC[c.st]||'#57606a'};font-weight:700;font-size:11px">${c.st||'—'}</span></td>
+      <td>${c.pr||'—'}</td>
+      <td>${c.lo||'—'}</td>
+      <td style="font-size:11px;color:#57606a">${c.na||'—'}</td>
+    </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:#8c959f;padding:14px">No data yet.</td></tr>';
+}
+function renderAdminSummary(rows){
+  let allCompanies=[];
+  rows.forEach(row=>{
+    const recs=Array.isArray(row.company_records)?row.company_records:[];
+    recs.forEach(c=>allCompanies.push({...c,_owner:row.owner_email||row.user_id}));
+  });
+  const total=allCompanies.length||1;
+  const posRR=allCompanies.filter(r=>['Yes','Partial'].includes(r.rr)).length;
+  const ndaSigned=allCompanies.filter(r=>r.nda==='Signed').length;
+  const won=allCompanies.filter(r=>r.st==='Won').length;
+  document.getElementById('adStats').innerHTML=`
+    <div class="astat"><div class="av" style="color:#0969da">${allCompanies.length}</div><div class="al">Total Leads</div></div>
+    <div class="astat"><div class="av" style="color:#1a7f37">${Math.round(posRR/total*100)}%</div><div class="al">Positive Response Rate</div></div>
+    <div class="astat"><div class="av" style="color:#8250df">${Math.round(ndaSigned/total*100)}%</div><div class="al">NDA Signed Rate</div></div>
+    <div class="astat"><div class="av" style="color:#bc4c00">${Math.round(won/total*100)}%</div><div class="al">Win Rate</div></div>`;
+
+  const maxStage=Math.max(1,...ST.map(s=>allCompanies.filter(r=>r.st===s).length));
+  document.getElementById('adStageChart').innerHTML=ST.map(s=>{
+    const c=allCompanies.filter(r=>r.st===s).length;
+    const pct=(c/maxStage*100).toFixed(0);
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <div style="width:130px;font-size:10px;color:#57606a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>
+      <div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${pct}%;background:${SCC[s]||'#57606a'};height:100%"></div></div>
+      <div style="width:22px;font-size:11px;font-weight:700;text-align:right">${c}</div>
+    </div>`;
+  }).join('');
+
+  const byUser={};
+  allCompanies.forEach(c=>{byUser[c._owner]=(byUser[c._owner]||0)+1;});
+  const maxU=Math.max(1,...Object.values(byUser));
+  const entries=Object.entries(byUser).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('adUserChart').innerHTML=entries.length?entries.map(([owner,c])=>{
+    const pct=(c/maxU*100).toFixed(0);
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <div style="width:150px;font-size:10px;color:#57606a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${owner}">${owner}</div>
+      <div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${pct}%;background:#0969da;height:100%"></div></div>
+      <div style="width:22px;font-size:11px;font-weight:700;text-align:right">${c}</div>
+    </div>`;
+  }).join(''):'<div style="color:#8c959f;font-size:11px;padding:10px;text-align:center">No users yet.</div>';
+}
+// startApp() runs once per successful login/signup (called by onAuthed()).
+async function startApp(){
+  loadLocal();
+  document.getElementById('dtag').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',year:'numeric',month:'long',day:'numeric'});
+  updateBanner();
+  table();
+  // Supabase is the source of truth for THIS user. Fetch after the local copy renders.
+  await fetchCloud(false);
+}
+
+document.getElementById('authEmail').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
+document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
+
+initAuth();
+setInterval(()=>{if(currentUser)fetchCloud(false);},60000);
+</script>
+</div><!-- /appRoot -->
+</body>
+</html>
