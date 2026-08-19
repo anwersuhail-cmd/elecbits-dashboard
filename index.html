@@ -95,6 +95,7 @@ tr.rh:hover td{background:#edf4ff}
 tr.ph td:first-child{border-left:2px solid rgba(207,34,46,.6)}
 tr.pm td:first-child{border-left:2px solid rgba(154,103,0,.6)}
 .ei{background:transparent;border:1px solid transparent;border-radius:7px;padding:3px 5px;color:#1f2328;font-size:11px;width:100%;min-width:75px;font-family:inherit}
+.ei:disabled,.ed:disabled,.es:disabled{opacity:1;color:#1f2328;-webkit-text-fill-color:#1f2328;cursor:default}
 .ei:hover{border-color:#d0d7de;background:#eaeef2}
 .ei:focus{border-color:#2563eb;background:#ddf4ff;outline:none}
 .eco{font-weight:700;font-size:12px;min-width:110px}
@@ -236,7 +237,7 @@ tr.pm td:first-child{border-left:2px solid rgba(154,103,0,.6)}
     <div class="dtag" id="dtag"></div>
     <div class="awho" id="whoBox">👤 <span id="whoEmail"></span></div>
     <div class="sstatus" id="syncStatus">⟳ Supabase</div>
-    <button class="btn by" onclick="fetchCloud()" title="Get latest updates from Supabase">Refresh</button>
+    <button class="btn by" onclick="doRefresh()" title="Get latest updates from Supabase">Refresh</button>
     <button class="btn bc" onclick="pushCloud()" title="Save your changes to Supabase">Save Changes</button>
     <button class="btn bb" onclick="openPanel()">⚙ Columns</button>
     <button class="btn bg" onclick="window.print()">⬇ PDF</button>
@@ -316,7 +317,7 @@ tr.pm td:first-child{border-left:2px solid rgba(154,103,0,.6)}
     <div class="astats" id="adUserStats"></div>
     <div class="acard" style="margin-top:6px">
       <h3>Every Company, Across Every User</h3>
-      <div class="tcon"><table><thead><tr><th class="rn">#</th><th>Owner</th><th>Company</th><th>Contact</th><th>Stage</th><th>Priority</th><th>Lead Owner</th><th>Next Action</th></tr></thead><tbody id="adTb"></tbody></table></div>
+      <div class="tcon"><table><thead><tr><th class="rn">#</th><th>Owner</th><th>Company</th><th>Contact</th><th>Contact Detail</th><th>Stage</th><th>Priority</th><th>Lead Owner</th><th>Next Action</th></tr></thead><tbody id="adTb"></tbody></table></div>
     </div>
   </div>
 
@@ -471,6 +472,11 @@ async function onAuthed(user){
   document.getElementById('appRoot').style.display='block';
   await checkAdmin();
   await startApp();
+  if(isAdmin){
+    // Land admins on the Admin overview first — their normal pipeline
+    // (Detailed Table / Board / Analytics) is still one click away.
+    swTab('admin',document.getElementById('adminTabBtn'));
+  }
 }
 async function checkAdmin(){
   isAdmin=false;
@@ -496,11 +502,41 @@ async function initAuth(){
   }
 }
 
-const DCOLS=[{"id":"co","label":"Company","type":"text","visible":true,"core":true},{"id":"ct","label":"Contact Person","type":"text","visible":true,"core":true},{"id":"dg","label":"Designation","type":"text","visible":true,"core":true},{"id":"dd","label":"Discovery Date","type":"date","visible":true,"core":true},{"id":"mom","label":"MoM Sent","type":"select","opts":["Yes","No","Pending"],"visible":true,"core":true},{"id":"nda","label":"NDA Status","type":"select","opts":["Not Discussed","Shared by Us","Signed","They Will Share","Awaiting Response"],"visible":true,"core":true},{"id":"rr","label":"Req. Received","type":"select","opts":["No","Yes","Partial","Awaited","Not Applicable"],"visible":true,"core":true},{"id":"rt","label":"Requirement Type","type":"text","visible":true,"core":true},{"id":"qu","label":"Quotation Shared","type":"select","opts":["No","Yes","Pending"],"visible":true,"core":true},{"id":"sm","label":"2nd Meeting","type":"select","opts":["No","Yes","Scheduled","Pending","Cancelled"],"visible":true,"core":true},{"id":"sd","label":"2nd Meeting Date","type":"date","visible":true,"core":true},{"id":"na","label":"Next Action","type":"text","visible":true,"core":true},{"id":"fd","label":"Follow-Up Date","type":"date","visible":true,"core":true},{"id":"st","label":"Pipeline Stage","type":"select","opts":["Discovery Done","MoM Sent","NDA Shared","NDA Signed","Requirements Received","Tech Discussion","Quotation Shared","Negotiation","Won","Lost","On Hold"],"visible":true,"core":true},{"id":"pr","label":"Priority","type":"select","opts":["High","Medium","Low"],"visible":true,"core":true},{"id":"lo","label":"Lead Owner","type":"select","opts":["Rishabh","Sid","Simone"],"visible":true,"core":true},{"id":"no","label":"Notes","type":"text","visible":true,"core":true}];
+const DCOLS=[{"id":"co","label":"Company","type":"text","visible":true,"core":true},{"id":"ct","label":"Contact Person","type":"text","visible":true,"core":true},{"id":"cd","label":"Contact Detail","type":"text","visible":true,"core":true},{"id":"dg","label":"Designation","type":"text","visible":true,"core":true},{"id":"dd","label":"Discovery Date","type":"date","visible":true,"core":true},{"id":"mom","label":"MoM Sent","type":"select","opts":["Yes","No","Pending"],"visible":true,"core":true},{"id":"nda","label":"NDA Status","type":"select","opts":["Not Discussed","Shared by Us","Signed","They Will Share","Awaiting Response"],"visible":true,"core":true},{"id":"rr","label":"Req. Received","type":"select","opts":["No","Yes","Partial","Awaited","Not Applicable"],"visible":true,"core":true},{"id":"rt","label":"Requirement Type","type":"text","visible":true,"core":true},{"id":"qu","label":"Quotation Shared","type":"select","opts":["No","Yes","Pending"],"visible":true,"core":true},{"id":"sm","label":"2nd Meeting","type":"select","opts":["No","Yes","Scheduled","Pending","Cancelled"],"visible":true,"core":true},{"id":"sd","label":"2nd Meeting Date","type":"date","visible":true,"core":true},{"id":"na","label":"Next Action","type":"text","visible":true,"core":true},{"id":"fd","label":"Follow-Up Date","type":"date","visible":true,"core":true},{"id":"st","label":"Pipeline Stage","type":"select","opts":["Discovery Done","MoM Sent","NDA Shared","NDA Signed","Requirements Received","Tech Discussion","Quotation Shared","Negotiation","Won","Lost","On Hold"],"visible":true,"core":true},{"id":"pr","label":"Priority","type":"select","opts":["High","Medium","Low"],"visible":true,"core":true},{"id":"lo","label":"Lead Owner","type":"select","opts":["Rishabh","Sid","Simone"],"visible":true,"core":true},{"id":"no","label":"Notes","type":"text","visible":true,"core":true}];
 const DD=[{"id":1,"co":"Aeologic","ct":"Abhishek","dg":"","dd":"2026-06-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Await requirement from company","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Waiting requirement"},{"id":2,"co":"IndoAI","ct":"Tushar Kanti","dg":"","dd":"2026-06-25","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Camera (ODM)","qu":"No","sm":"No","sd":"","na":"Await camera requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Camera requirement awaited"},{"id":3,"co":"Peer Robotics","ct":"Akash","dg":"","dd":"2026-06-26","mom":"Yes","nda":"Signed","rr":"Yes","rt":"","qu":"No","sm":"No","sd":"","na":"Await requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":"Waiting requirement"},{"id":4,"co":"Statiq","ct":"Pranjal","dg":"","dd":"2026-06-30","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"EV Charging Electronics","qu":"No","sm":"No","sd":"","na":"Await requirement","fd":"","st":"MoM Sent","pr":"High","lo":"Sid","no":""},{"id":5,"co":"Oriana","ct":"Rushikesh","dg":"","dd":"","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Follow up — reschedule meeting","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"Meeting scheduled but did not happen"},{"id":6,"co":"Homemate","ct":"Het Bhavsar","dg":"Co-founder","dd":"2026-07-15","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Camera (ODM)","qu":"No","sm":"No","sd":"","na":"Send camera spec sheet","fd":"","st":"MoM Sent","pr":"High","lo":"Simone","no":"Send camera product spec sheet"},{"id":7,"co":"TVS Motors (Calamus)","ct":"Huzaifa Hararwala","dg":"Co-Founder & CTO","dd":"2026-07-14","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Rapid Prototyping / NPI","qu":"No","sm":"No","sd":"","na":"Await NDA from TVS Motors","fd":"","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"Calamus acquired by TVS. Interested in rapid prototyping. Google Meet + Bengaluru meet possible."},{"id":8,"co":"Sanlayan","ct":"Neelakannan","dg":"","dd":"2026-07-17","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Follow up on NDA response","fd":"","st":"NDA Shared","pr":"High","lo":"Sid","no":"NDA shared by us"},{"id":9,"co":"Volthez Tech","ct":"Prasit Kumar Dutta","dg":"CTO","dd":"2026-07-20","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Battery Materials / BMS","qu":"No","sm":"No","sd":"","na":"Create MoM + questionnaire and share","fd":"","st":"Discovery Done","pr":"Medium","lo":"Sid","no":"Meeting done. MoM + questionnaire to be created."},{"id":10,"co":"FASMHO","ct":"Aqib Mastan","dg":"Co-Founder & CTO","dd":"2026-07-21","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"BMS PCB / IoT Electronics","qu":"No","sm":"No","sd":"","na":"Follow up on requirements post NDA","fd":"","st":"NDA Shared","pr":"High","lo":"Simone","no":"MoM and NDA shared"},{"id":11,"co":"Schnell Energy","ct":"Velmurugan","dg":"CPO","dd":"2026-07-21","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Send 3 separate mails to different contacts","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"3 different mails to 3 contacts"},{"id":12,"co":"Sterling EMobility","ct":"Ramesha T.D","dg":"","dd":"2026-07-21","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Sid","no":""},{"id":13,"co":"Torus Robotics","ct":"Abbhivigyan","dg":"Founder","dd":"2026-07-21","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"Robotics Electronics","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":"They require PCB @4,000"},{"id":14,"co":"TranX Smart","ct":"Rhine","dg":"Founder","dd":"2026-07-22","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Simone","no":""},{"id":15,"co":"Elcom International","ct":"Ravindra Patil","dg":"","dd":"2026-07-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Connectors / Power Electronics","qu":"No","sm":"No","sd":"","na":"Schedule next follow-up","fd":"","st":"MoM Sent","pr":"Medium","lo":"Rishabh","no":"Sourcing contact is interested"},{"id":16,"co":"Tonbo Imaging","ct":"Arvind Lakshmikumar","dg":"Founder & CEO","dd":"2026-07-23","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"Defence Electronics / EMS","qu":"No","sm":"Scheduled","sd":"2026-08-06","na":"Find alternate contact — Arvind unreachable","fd":"","st":"MoM Sent","pr":"High","lo":"Rishabh","no":"Incoming calls closed. Try alternate contact."},{"id":17,"co":"Synedyne","ct":"Shrinidhi Torvi","dg":"","dd":"2026-07-22","mom":"Yes","nda":"Not Discussed","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Confirm scheduled meeting date","fd":"","st":"MoM Sent","pr":"Medium","lo":"Sid","no":"Scheduled — date TBC"},{"id":18,"co":"Nexzu Mobility","ct":"Vivek Dawange","dg":"CTO","dd":"2026-07-24","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Get NDA signed + requirements doc","fd":"2026-07-29","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"No answer previously. Call again + mail."},{"id":19,"co":"SectorQube","ct":"Biniyas Valiyaveettil","dg":"Co-Founder & Chief Marketing Officer","dd":"2026-07-25","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"Send MoM and follow up on requirements","fd":"2026-07-29","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"Discovery call done 25 Jul 2026"},{"id":20,"co":"SmartDen Automations","ct":"Shrey Sharma","dg":"Founder","dd":"2026-07-25","mom":"Yes","nda":"Shared by Us","rr":"Awaited","rt":"","qu":"No","sm":"No","sd":"","na":"SmartDen to share the BOM, Gerber files, Pick-and-Place files, enclosure requirements","fd":"2026-07-28","st":"NDA Shared","pr":"High","lo":"Rishabh","no":"NDA and requirements awaited"},{"id":23,"co":"Cygnus Microsystems ","ct":" R. Harikrishnan","dg":"Sr.Manager Mkt","dd":"2026-07-30","mom":"Yes","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Simone","no":""},{"id":25,"co":"Cornet India","ct":"Prashant","dg":"Product","dd":"2026-07-31","mom":"Yes","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""},{"id":26,"co":"Sychedelic","ct":"Sanskar","dg":"CPO","dd":"2026-07-31","mom":"Yes","nda":"Shared by Us","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""},{"id":27,"co":"New Company","ct":"","dg":"","dd":"","mom":"No","nda":"Not Discussed","rr":"No","rt":"","qu":"No","sm":"No","sd":"","na":"","fd":"","st":"Discovery Done","pr":"Medium","lo":"Rishabh","no":""}];
 const FALLBACK_NID=28;
 
+// If we ever add a new built-in column (like Contact Detail) after people
+// already have saved column_definitions, this backfills it in for them
+// automatically instead of requiring a manual Supabase edit.
+function mergeCoreColumns(cols){
+  if(!Array.isArray(cols))cols=[];
+  const byId={};
+  cols.forEach(c=>{byId[c.id]=c;});
+  const merged=[];
+  // Core columns always follow DCOLS' canonical order (so a newly added
+  // built-in column, like Contact Detail, lands in the right position
+  // instead of getting tacked onto the end).
+  DCOLS.forEach(dc=>{
+    if(byId[dc.id]){merged.push(byId[dc.id]);delete byId[dc.id];}
+    else merged.push(JSON.parse(JSON.stringify(dc)));
+  });
+  // Any remaining (custom, user-added) columns keep their original order,
+  // appended after the core set.
+  cols.forEach(c=>{if(byId[c.id]){merged.push(c);delete byId[c.id];}});
+  return merged;
+}
+
 let D=[],C=[],flt="All",qry="",nid=FALLBACK_NID;
+let otherUsersD=[]; // read-only rows from every OTHER user, admin-only, refreshed via loadAdminData()
+
+// What the Detailed Table / Board / Analytics views should actually render:
+// regular users always see just their own D; admins see their own D (still
+// editable) plus every other user's leads layered in as read-only.
+function viewD(){
+  if(!isAdmin)return D;
+  return D.map(r=>Object.assign({},r,{_mine:true,_owner:currentUser?currentUser.email:''})).concat(otherUsersD);
+}
 let cloudReady=false;
 let autoSaveTimer=null;
 let saveInFlight=false;
@@ -533,6 +569,7 @@ function loadLocal(){
   if(!Array.isArray(C)||C.filter(c=>c.visible).length===0){
     C=JSON.parse(JSON.stringify(DCOLS));
   }
+  C=mergeCoreColumns(C);
 }
 function clearAll(){
   if(confirm('Reset YOUR local copy to a blank pipeline?\n\nThis does NOT touch your Supabase cloud data until you click Save Changes.')){
@@ -574,7 +611,7 @@ function extractCloudRecord(row){
     const cols=row.column_definitions.length>0?row.column_definitions:JSON.parse(JSON.stringify(DCOLS));
     return {
       D:row.company_records,
-      C:cols,
+      C:mergeCoreColumns(cols),
       nid:Number(row.next_id)||FALLBACK_NID,
       updated_at:row.updated_at||null
     };
@@ -608,6 +645,9 @@ async function fetchCloud(showAlert=true){
     const record=extractCloudRecord(rows[0]);
     if(!record)throw new Error('Supabase returned no valid dashboard record.');
 
+    const rawColCount=Array.isArray(rows[0].column_definitions)?rows[0].column_definitions.length:0;
+    const gainedNewColumns=record.C.length>rawColCount;
+
     D=record.D;
     C=record.C;
     nid=record.nid;
@@ -618,6 +658,7 @@ async function fetchCloud(showAlert=true){
 
     cloudReady=true;
     setSyncStatus('☁ Supabase ✓ '+new Date().toLocaleTimeString(),true);
+    if(gainedNewColumns)pushCloud(true); // silently persist the newly merged columns
     return true;
   }catch(e){
     cloudReady=false;
@@ -704,8 +745,8 @@ function respClass(f,val){
   if(RESP_NEG.includes(v))return'neg';
   return'neu';
 }
-function mSel(opts,val,f,id){
-  return`<select class="es ${respClass(f,val)}" onchange="updSelResp(this,${id},'${f}')">${(opts||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
+function mSel(opts,val,f,id,ro){
+  return`<select class="es ${respClass(f,val)}" ${ro?'disabled':''} onchange="updSelResp(this,${id},'${f}')">${(opts||[]).map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
 }
 function updSelResp(el,id,f){
   upd(id,f,el.value);
@@ -713,59 +754,70 @@ function updSelResp(el,id,f){
   const c=respClass(f,el.value);
   if(c)el.classList.add(c);
 }
-function mInp(val,f,id,cls=''){
+function mInp(val,f,id,cls='',ro){
   const v=(val==null?'':String(val)).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-  return`<input class="ei ${cls}" value="${v}" placeholder="—" onchange="upd(${id},'${f}',this.value)">`;
+  return`<input class="ei ${cls}" value="${v}" placeholder="—" ${ro?'disabled':''} onchange="upd(${id},'${f}',this.value)">`;
 }
-function mDt(val,f,id){return`<input type="date" class="ed" value="${val||''}" onchange="upd(${id},'${f}',this.value)">`;}
-function cell(col,row){
-  if(col.type==='date')return mDt(row[col.id],col.id,row.id);
-  if(col.type==='select')return mSel(col.opts,row[col.id],col.id,row.id);
+function mDt(val,f,id,ro){return`<input type="date" class="ed" value="${val||''}" ${ro?'disabled':''} onchange="upd(${id},'${f}',this.value)">`;}
+function cell(col,row,ro){
+  if(col.type==='date')return mDt(row[col.id],col.id,row.id,ro);
+  if(col.type==='select')return mSel(col.opts,row[col.id],col.id,row.id,ro);
   const c=col.id==='co'?'eco':col.id==='na'?'ena':col.id==='no'?'eno':'';
-  return mInp(row[col.id],col.id,row.id,c);
+  return mInp(row[col.id],col.id,row.id,c,ro);
 }
 function rCls(p){return'rh'+(p==='High'?' ph':p==='Medium'?' pm':'');}
+async function doRefresh(){
+  await fetchCloud();
+  if(isAdmin)await loadAdminData();
+}
 
 // ── RENDER TABLE ──
 function table(){
   const vis=C.filter(c=>c.visible);
-  document.getElementById('th').innerHTML=`<tr><th class="rn">#</th>${vis.map(c=>`<th>${c.label}${!c.core?`<button class="dc" onclick="delCol('${c.id}')">✕</button>`:''}</th>`).join('')}<th></th></tr>`;
-  const rows=D.filter(r=>{
+  document.getElementById('th').innerHTML=`<tr><th class="rn">#</th>${isAdmin?'<th>Owner</th>':''}${vis.map(c=>`<th>${c.label}${!c.core?`<button class="dc" onclick="delCol('${c.id}')">✕</button>`:''}</th>`).join('')}<th></th></tr>`;
+  const src=viewD();
+  const rows=src.filter(r=>{
     return (flt==='All'||r.st===flt)&&(!qry||['co','ct','rt','no'].some(f=>(r[f]||'').toLowerCase().includes(qry)));
   });
-  document.getElementById('tb').innerHTML=rows.map((r,i)=>`
+  document.getElementById('tb').innerHTML=rows.map((r,i)=>{
+    const mine=!isAdmin||r._mine;
+    return `
     <tr class="${rCls(r.pr)}">
       <td class="rn">${i+1}</td>
-      ${vis.map(c=>`<td>${cell(c,r)}</td>`).join('')}
-      <td><button class="dr" onclick="delRow(${r.id})" title="Delete">✕</button></td>
-    </tr>`).join('');
+      ${isAdmin?`<td style="font-size:10px;color:#57606a">${mine?'You':(r._owner||'—')}</td>`:''}
+      ${vis.map(c=>`<td>${cell(c,r,!mine)}</td>`).join('')}
+      <td>${mine?`<button class="dr" onclick="delRow(${r.id})" title="Delete">✕</button>`:''}</td>
+    </tr>`;
+  }).join('');
   metrics();
 }
 
 // ── BOARD ──
 function board(){
+  const src=viewD();
   document.getElementById('bcols').innerHTML=ST.map(s=>{
-    const cs=D.filter(r=>r.st===s);
+    const cs=src.filter(r=>r.st===s);
     return`<div class="bcol"><div class="bch" style="color:${SCC[s]||'#57606a'}">${s}<span class="cct">${cs.length}</span></div>${
-      cs.length?cs.map(r=>`<div class="bcc"><div class="bcn">${r.co||'—'}</div><div class="bco">${r.ct||'TBD'}</div>${r.na?`<div class="bca">→ ${r.na}</div>`:''}</div>`).join(''):
+      cs.length?cs.map(r=>`<div class="bcc"><div class="bcn">${r.co||'—'}</div><div class="bco">${r.ct||'TBD'}</div>${isAdmin?`<div class="bco" style="opacity:.6">${r._mine?'You':(r._owner||'')}</div>`:''}${r.na?`<div class="bca">→ ${r.na}</div>`:''}</div>`).join(''):
       '<div style="color:#484f58;font-size:10px;text-align:center;padding:5px">—</div>'}</div>`;
   }).join('');
 }
 
 // ── METRICS ──
 function metrics(){
-  document.getElementById('m0').textContent=D.length;
-  document.getElementById('m1').textContent=D.filter(r=>r.mom==='Yes').length;
-  document.getElementById('m2').textContent=D.filter(r=>r.nda==='Shared by Us'||r.nda==='They Will Share').length;
-  document.getElementById('m3').textContent=D.filter(r=>r.nda==='Signed').length;
-  document.getElementById('m4').textContent=D.filter(r=>r.rr==='Yes'||r.rr==='Partial').length;
-  document.getElementById('m5').textContent=D.filter(r=>r.qu==='Yes').length;
-  document.getElementById('m6').textContent=D.filter(r=>r.st==='Won').length;
+  const src=viewD();
+  document.getElementById('m0').textContent=src.length;
+  document.getElementById('m1').textContent=src.filter(r=>r.mom==='Yes').length;
+  document.getElementById('m2').textContent=src.filter(r=>r.nda==='Shared by Us'||r.nda==='They Will Share').length;
+  document.getElementById('m3').textContent=src.filter(r=>r.nda==='Signed').length;
+  document.getElementById('m4').textContent=src.filter(r=>r.rr==='Yes'||r.rr==='Partial').length;
+  document.getElementById('m5').textContent=src.filter(r=>r.qu==='Yes').length;
+  document.getElementById('m6').textContent=src.filter(r=>r.st==='Won').length;
 }
 
 // ── ADD / DELETE ROW ──
 function addRow(){
-  const r={id:nid++,co:"New Company",ct:"",dg:"",dd:"",mom:"No",nda:"Not Discussed",rr:"No",rt:"",qu:"No",sm:"No",sd:"",na:"",fd:"",st:"Discovery Done",pr:"Medium",lo:"Rishabh",no:""};
+  const r={id:nid++,co:"New Company",ct:"",cd:"",dg:"",dd:"",mom:"No",nda:"Not Discussed",rr:"No",rt:"",qu:"No",sm:"No",sd:"",na:"",fd:"",st:"Discovery Done",pr:"Medium",lo:"Rishabh",no:""};
   C.filter(c=>!c.core).forEach(c=>{r[c.id]=c.type==='select'?(c.opts&&c.opts[0])||'':'';});
   D.push(r);save();queueAutoSave();table();
   if(document.getElementById('bvw').style.display!=='none')board();
@@ -853,19 +905,20 @@ function swAdminSub(which){
 
 // ── ANALYTICS ──
 function analytics(){
-  const total=D.length||1;
-  const posRR=D.filter(r=>['Yes','Partial'].includes(r.rr)).length;
-  const ndaSigned=D.filter(r=>r.nda==='Signed').length;
-  const won=D.filter(r=>r.st==='Won').length;
+  const AD=viewD();
+  const total=AD.length||1;
+  const posRR=AD.filter(r=>['Yes','Partial'].includes(r.rr)).length;
+  const ndaSigned=AD.filter(r=>r.nda==='Signed').length;
+  const won=AD.filter(r=>r.st==='Won').length;
   document.getElementById('astats').innerHTML=`
-    <div class="astat"><div class="av" style="color:#0969da">${D.length}</div><div class="al">Total Leads</div></div>
+    <div class="astat"><div class="av" style="color:#0969da">${AD.length}</div><div class="al">Total Leads</div></div>
     <div class="astat"><div class="av" style="color:#1a7f37">${Math.round(posRR/total*100)}%</div><div class="al">Positive Response Rate</div></div>
     <div class="astat"><div class="av" style="color:#8250df">${Math.round(ndaSigned/total*100)}%</div><div class="al">NDA Signed Rate</div></div>
     <div class="astat"><div class="av" style="color:#bc4c00">${Math.round(won/total*100)}%</div><div class="al">Win Rate</div></div>`;
 
-  const maxStage=Math.max(1,...ST.map(s=>D.filter(r=>r.st===s).length));
+  const maxStage=Math.max(1,...ST.map(s=>AD.filter(r=>r.st===s).length));
   document.getElementById('stageChart').innerHTML=ST.map(s=>{
-    const c=D.filter(r=>r.st===s).length;
+    const c=AD.filter(r=>r.st===s).length;
     const pct=(c/maxStage*100).toFixed(0);
     return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
       <div style="width:130px;font-size:10px;color:#57606a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>
@@ -875,7 +928,7 @@ function analytics(){
   }).join('');
 
   let pos=0,neg=0,neu=0;
-  D.forEach(r=>RESP_FIELDS.forEach(f=>{const c=respClass(f,r[f]);if(c==='pos')pos++;else if(c==='neg')neg++;else if(c==='neu')neu++;}));
+  AD.forEach(r=>RESP_FIELDS.forEach(f=>{const c=respClass(f,r[f]);if(c==='pos')pos++;else if(c==='neg')neg++;else if(c==='neu')neu++;}));
   const respTotal=Math.max(1,pos+neg+neu);
   document.getElementById('respChart').innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:64px;font-size:10px;color:#57606a">Positive</div><div style="flex:1;background:#eaeef2;border-radius:4px;height:14px;overflow:hidden"><div style="width:${(pos/respTotal*100).toFixed(0)}%;background:#1a7f37;height:100%"></div></div><div style="width:22px;font-size:11px;font-weight:700;text-align:right">${pos}</div></div>
@@ -884,10 +937,10 @@ function analytics(){
   document.getElementById('respLeg').innerHTML=`<span><span class="adot" style="background:#1a7f37"></span>Positive (Yes / Signed / Shared)</span><span><span class="adot" style="background:#9a6700"></span>Pending / Awaited</span><span><span class="adot" style="background:#cf222e"></span>Negative (No / N.A.)</span>`;
 
   const W=680,H=220,pad=30;
-  const n=D.length||1;
+  const n=AD.length||1;
   let cumLead=0,cumPos=0;
   const leadPts=[],posPts=[];
-  D.forEach((r,i)=>{
+  AD.forEach((r,i)=>{
     cumLead++;
     if(['Yes','Partial'].includes(r.rr)||r.nda==='Signed')cumPos++;
     const x=pad+(i/(n-1||1))*(W-2*pad);
@@ -902,7 +955,7 @@ function analytics(){
 // ── ADMIN — ALL USERS ──
 async function loadAdminData(){
   if(!isAdmin)return;
-  document.getElementById('adTb').innerHTML='<tr><td colspan="8" style="text-align:center;color:#8c959f;padding:14px">Loading every user\'s data…</td></tr>';
+  document.getElementById('adTb').innerHTML='<tr><td colspan="9" style="text-align:center;color:#8c959f;padding:14px">Loading every user\'s data…</td></tr>';
   try{
     const r=await fetch(SUPABASE_URL+'/rest/v1/'+SUPABASE_TABLE+'?select=user_id,owner_email,company_records,updated_at',{
       headers:await authHeaders()
@@ -912,9 +965,19 @@ async function loadAdminData(){
     const rows=JSON.parse(text);
     renderAdminAll(rows);
     renderAdminSummary(rows);
+
+    // Feed the SAME data into the normal Detailed Table / Board / Analytics
+    // views, so admins see everyone's leads there too — not just in this tab.
+    otherUsersD=rows
+      .filter(row=>row.user_id!==currentUser.id)
+      .flatMap(row=>(Array.isArray(row.company_records)?row.company_records:[])
+        .map(c=>Object.assign({},c,{_owner:row.owner_email||row.user_id,_mine:false})));
+    table();
+    if(document.getElementById('bvw').style.display!=='none')board();
+    if(document.getElementById('avw').style.display!=='none')analytics();
   }catch(e){
     console.error('Admin fetch error:',e);
-    document.getElementById('adTb').innerHTML=`<tr><td colspan="8" style="text-align:center;color:#cf222e;padding:14px">Could not load admin data: ${e.message}</td></tr>`;
+    document.getElementById('adTb').innerHTML=`<tr><td colspan="9" style="text-align:center;color:#cf222e;padding:14px">Could not load admin data: ${e.message}</td></tr>`;
   }
 }
 function renderAdminAll(rows){
@@ -937,11 +1000,12 @@ function renderAdminAll(rows){
       <td style="font-size:10px;color:#57606a">${c._owner}</td>
       <td style="font-weight:700">${c.co||'—'}</td>
       <td>${c.ct||'—'}</td>
+      <td style="font-size:11px;color:#57606a">${c.cd||'—'}</td>
       <td><span style="color:${SCC[c.st]||'#57606a'};font-weight:700;font-size:11px">${c.st||'—'}</span></td>
       <td>${c.pr||'—'}</td>
       <td>${c.lo||'—'}</td>
       <td style="font-size:11px;color:#57606a">${c.na||'—'}</td>
-    </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:#8c959f;padding:14px">No data yet.</td></tr>';
+    </tr>`).join(''):'<tr><td colspan="9" style="text-align:center;color:#8c959f;padding:14px">No data yet.</td></tr>';
 }
 function renderAdminSummary(rows){
   let allCompanies=[];
@@ -997,7 +1061,7 @@ document.getElementById('authEmail').addEventListener('keydown',e=>{if(e.key==='
 document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
 
 initAuth();
-setInterval(()=>{if(currentUser)fetchCloud(false);},60000);
+setInterval(()=>{if(currentUser){fetchCloud(false);if(isAdmin)loadAdminData();}},60000);
 </script>
 </div><!-- /appRoot -->
 </body>
